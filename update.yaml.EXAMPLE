@@ -1,0 +1,87 @@
+ckanURL: https://opendata.schleswig-holstein.de
+apiKey:  INSERT YOUR API KEY HERE
+
+localDirectory: /tmp/local-copies/
+dryRun: false
+
+datasets:
+  - collectionId: badegewasser-stammdaten
+    originalURL: http://example.org/bg/opendata/v_badegewaesser_odata.csv
+    type: OVERWRITE
+    generator: just-download
+
+  - collectionId: badegewasser-infrastruktur
+    originalURL: http://example.org/bg/opendata/v_infrastruktur_odata.csv
+    type: OVERWRITE
+    generator: just-download
+
+  - datasetId: badegewasser-saisondauer
+    originalURL: http://example.org/bg/opendata/v_badesaison_odata.csv
+    type: APPEND
+    generator: just-download
+
+  - datasetId: badegewasser-einstufung
+    originalURL: http://example.org/bg/opendata/v_einstufung_odata.csv
+    type: APPEND
+    generator: just-download
+
+  - datasetId: badegewasser-messungen
+    originalURL: http://example.org/bg/opendata/v_proben_odata.csv
+    type: APPEND
+    generator: just-download
+
+  - collectionId: denkmalliste
+    type: OVERWRITE
+    private: true
+    generator: de.landsh.opendata.processor.Denkmalliste
+    generatorArgs:
+      json: https://example.org/dish/dish_opendata/Json/DatenZurVeroeffentlichung.json
+      photoDirectory: /data/Denkmal-Fotos
+      photoBaseURL: https://opendatarepo.lsh.uni-kiel.de/data/denkmalpflege/fotos/
+
+  - collectionId: denkmalliste-stormarn
+    type: OVERWRITE
+    private: true
+    generator: de.landsh.opendata.processor.Denkmalliste
+    generatorArgs:
+      county: Kreis Stormarn
+      json: https://example.org/dish/dish_opendata/Json/DatenZurVeroeffentlichung.json
+      pdf: https://example.org/dish/dish_opendata/PDF/RptDenkmalListeZurVeroeffenlichungKreis-OD.pdf
+      photoDirecotry: /data/Denkmal-Fotos
+      photoBaseURL: https://opendatarepo.lsh.uni-kiel.de/data/denkmalpflege/fotos/
+
+  - datasetId: kommunale-wappenrolle-wappen
+    type: APPEND
+    private: true
+    originalURL: https://example.org/wr/wr_opendata.xml
+    generator: de.landsh.opendata.processor.Wappenrolle
+    generatorArgs:
+      type: wappen
+
+  - datasetId: kommunale-wappenrolle-flaggen
+    type: APPEND
+    private: true
+    originalURL: https://example.org/wr/wr_opendata.xml
+    generator: de.landsh.opendata.processor.Wappenrolle
+    generatorArgs:
+      type: flaggen
+
+  - datasetId: corona-zahlen-kreis-stormarn
+    type: APPEND
+    private: true
+    originalURL: https://nextcloud.example.org/remote.php/dav/files/wechange-1234/Open-Data/kreis-stormarn/corona-zahlen-kreis-stormarn.xlsx
+    username: wechange-1234
+    password: PASSWORD
+    generator: de.landsh.opendata.update.Excel2CsvGenerator
+    generatorArgs:
+      sheet: 0
+
+  - collectionId : ln-2020-statusliste-schulen
+    type: OVERWRITE
+    private: true
+    originalURL: https://nextcloud.example.org/remote.php/dav/files/wechange-1234/Open-Data/zit-sh/ln-2020-statusliste-schulen.xlsx
+    username: wechange-1234
+    password: PASSWORD
+    generator: de.landsh.opendata.update.Excel2CsvGenerator
+    generatorArgs:
+      sheet: 1

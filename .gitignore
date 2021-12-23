@@ -1,0 +1,16 @@
+.idea/
+target/
+*.iml
+
+# In diesen Dateien stehen geheime API-Schlüssel drin:
+src/main/resources/production/apikeys.csv
+src/main/resources/production/application.properties
+src/main/resources/stage/apikeys.csv
+src/main/resources/stage/application.properties
+src/main/resources/test/apikeys.csv
+src/main/resources/test/application.properties
+src/main/resources/login.properties
+config/*.yaml
+config/*.yml
+passwörter.csv
+
