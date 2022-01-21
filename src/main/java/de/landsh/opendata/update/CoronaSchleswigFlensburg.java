@@ -94,24 +94,35 @@ public class CoronaSchleswigFlensburg implements Generator {
         String date = "";
         for (final Element row : rows) {
             final Elements tds = row.select("td");
-            final String cell1 = tds.get(0).text();
-            final String cell2 = tds.get(1).text();
-            final String cell3 = tds.get(2).text();
+            final String municipality = tds.get(0).text();
+            final String quarantine     ;
+            final String positiveTests;
+            final boolean withQuarantine;
+            if( tds.size() > 2) {
+                // ältere Daten mit drei Spalten: Amt, Quarantäne, positive Tests
+                 quarantine = tds.get(1).text();
+                 positiveTests = tds.get(2).text();
+                 withQuarantine = true;
+            }  else {
+                // neuere Daten mit zwei Spalten:  Amt, positive Tests
+                positiveTests = tds.get(1).text();
+                quarantine = StringUtils.EMPTY;
+                withQuarantine = false;
+            }
             if (isFirst) {
                 isFirst = false;
-                date = StringUtils.substringBefore(cell1, ",");
+                date = StringUtils.substringBefore(municipality, ",");
                 if (seenDates.contains(date)) {
                     return;
                 }
-                if (!"Aktive Quarantänen".equals(cell2)) {
-                    throw new RuntimeException("In Spalte 2 sollte 'Aktive Quarantänen' stehen, dort steht aber " + cell2);
+                if ( withQuarantine && !"Aktive Quarantänen".equals(quarantine)) {
+                    throw new RuntimeException("In Spalte 2 sollte 'Aktive Quarantänen' stehen, dort steht aber " + quarantine);
                 }
-                if (!"Positiv Getestete".equals(cell3)) {
-                    throw new RuntimeException("In Spalte 3 sollte 'Positiv Getestete' stehen, dort steht aber " + cell3);
+                if (!"Positiv Getestete".equals(positiveTests)) {
+                    throw new RuntimeException("In Spalte 3 sollte 'Positiv Getestete' stehen, dort steht aber " + positiveTests);
                 }
-
             } else {
-                out.println(date + "," + cell1 + "," + cell2 + "," + cell3);
+                out.println(date + "," + municipality + "," + quarantine + "," + positiveTests);
             }
         }
         out.flush();
