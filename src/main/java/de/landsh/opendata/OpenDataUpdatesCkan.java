@@ -441,8 +441,6 @@ public class OpenDataUpdatesCkan {
             generator = new DenkmallisteGenerator(update);
         } else if (CsvSortLines.class.getCanonicalName().equals(update.generator)) {
             generator = new CsvSortLines(id + ".csv", update);
-        } else if (CoronaRdEck.class.getCanonicalName().equals(update.generator)) {
-            generator = new CoronaRdEck(update.originalURL);
         } else {
             generator = findGeneratorDynamically(update.generator, id, update);
             if (generator == null) {

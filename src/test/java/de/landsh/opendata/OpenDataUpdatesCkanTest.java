@@ -277,20 +277,6 @@ public class OpenDataUpdatesCkanTest {
         assertEquals("", getExtrasValue(existingDataset, "temporal_end"));
     }
 
-    public void work_overwrite_corona() throws Exception {
-        final DatasetUpdate update = new DatasetUpdate();
-        update.collectionId = "corona-rendsburg-eckernfoerde";
-        update.originalURL = "https://covid19dashboardrdeck.aco/daten/daten.js";
-        update.generator = CoronaRdEck.class.getCanonicalName();
-        update.type = DatasetUpdate.Type.OVERWRITE;
-
-        final File dataDir = new File(localDataDir, "corona-rendsburg-eckernfoerde");
-        dataDir.mkdir();
-
-        boolean result = openDataUpdatesCkan.work(update);
-
-        assertTrue(result);
-    }
 
     @Test
     public void findGeneratorDynamically_NoSuchClass() throws Exception {
@@ -314,7 +300,7 @@ public class OpenDataUpdatesCkanTest {
     @Test
     public void findGeneratorDynamically_AllParameters() throws Exception {
         Generator result = openDataUpdatesCkan.findGeneratorDynamically(
-                CoronaRdEck.class.getCanonicalName(),
+                JustDownloadGenerator.class.getCanonicalName(),
                 "test",
                 new DatasetUpdate());
         assertNotNull(result);
