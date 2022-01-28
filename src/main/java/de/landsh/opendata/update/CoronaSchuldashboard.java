@@ -17,10 +17,7 @@ import java.io.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CoronaSchuldashboard implements Generator {
@@ -56,6 +53,10 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
     private final String frequency;
 
     public CoronaSchuldashboard(String id, DatasetUpdate update) {
+        if( update == null || update.getGeneratorArgs() == null) {
+            throw new RuntimeException("Missing generator arguments.");
+        }
+
         targetFile = new File(update.getGeneratorArgs().get("targetFile"));
         code = update.getGeneratorArgs().get("code");
         frequency = update.getGeneratorArgs().get("frequency");
@@ -134,12 +135,15 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
     }
 
     static List<Integer> convertTestungen(JSONObject json, String verificationString) {
+        if( json == null) return null;
+
         if (verificationString != null) {
             if (!json.getString("header").startsWith(verificationString)) {
                 throw new RuntimeException("ungültiger header: " + json.getString("header"));
             }
         }
-        JSONArray data = json.getJSONArray("data");
+        
+        final JSONArray data = json.getJSONArray("data");
         return Arrays.asList(numberAtPosition(data, 0),
                 numberAtPosition(data, 1),
                 numberAtPosition(data, 2));
@@ -269,26 +273,11 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
             out.println(existingData.readLine());
         }
 
+        Set<String> seenWeeks = new HashSet<>();
+
         while (!weekString.equals(lastDate)) {
-
-            List<Integer> data;
-            if (CODE_TEST_ART.equals(code)) {
-                final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
-                data = convertTestungenArt(json);
-            } else if (CODE_TEST_IN_SCHULE.equals(code)) {
-                final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
-                data = convertTestungenSchule(json);
-            } else if (CODE_TEST_POSITIV.equals(code)) {
-                final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
-                data = convertTestungenPositiv(json);
-            } else {
-                log.warn("Unknown code {}", code);
-                data = null;
-            }
-
-            if (data != null) {
-                out.println(weekString + "," + data.stream().map(String::valueOf).collect(Collectors.joining(",")));
-            }
+            processDataForOneWeek(weekString, out);
+            seenWeeks.add(weekString);
 
             // go to previous week
             week--;
@@ -299,10 +288,19 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
             weekString = year + "-W" + String.format("%02d", week);
         }
 
+        // noch eine Woche weiter in die Vergangenheit gehen, da sich die Daten der letzten Woche noch über das
+        // Wochenende geändert haben könnten.
+        processDataForOneWeek(weekString, out);
+        seenWeeks.add(weekString);
+
         if (existingData != null) {
             String line = existingData.readLine();
             while (line != null) {
-                out.println(line);
+                final String[] s = line.split(",");
+                // S[0] enhält die Woche
+                if (!seenWeeks.contains(s[0])) {
+                    out.println(line);
+                }
                 line = existingData.readLine();
             }
             existingData.close();
@@ -310,6 +308,27 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
 
         out.close();
         return true;
+    }
+
+    private void processDataForOneWeek(String weekString, PrintStream out) throws IOException {
+        List<Integer> data;
+        if (CODE_TEST_ART.equals(code)) {
+            final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
+            data = convertTestungenArt(json);
+        } else if (CODE_TEST_IN_SCHULE.equals(code)) {
+            final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
+            data = convertTestungenSchule(json);
+        } else if (CODE_TEST_POSITIV.equals(code)) {
+            final JSONObject json = downloadRawData("https://api.public.polyteia.de/data/" + code + "/?week=" + weekString);
+            data = convertTestungenPositiv(json);
+        } else {
+            log.warn("Unknown code {}", code);
+            data = null;
+        }
+
+        if (data != null) {
+            out.println(weekString + "," + data.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        }
     }
 
     private boolean generateDistributionForDailyDatasets(File directory) throws IOException {
