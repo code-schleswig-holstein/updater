@@ -13,6 +13,8 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpStatusCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -27,11 +29,19 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 public class WappenrolleGeneratorTest {
+    private static final Logger log = LoggerFactory.getLogger(WappenrolleGeneratorTest.class);
     private static ClientAndServer mockServer;
 
     @BeforeAll
-    public static void startServer() throws IOException {
+    public static void startServer() throws IOException, InterruptedException {
         mockServer = startClientAndServer(1080);
+
+        log.info("mockserver.isRunning: " + mockServer.isRunning());
+        log.info("mockserver.hasStarted: " + mockServer.hasStarted());
+
+        while (!mockServer.isRunning()) {
+            Thread.sleep(100);
+        }
 
         byte[] rawdata = IOUtils.toByteArray(WappenrolleGeneratorTest.class.getResourceAsStream("/wr_opendata.xml"));
 
@@ -48,7 +58,6 @@ public class WappenrolleGeneratorTest {
                                         new Header("Content-Type", "text/xml"))
                                 .withBody(rawdata)
                 );
-
 
     }
 
