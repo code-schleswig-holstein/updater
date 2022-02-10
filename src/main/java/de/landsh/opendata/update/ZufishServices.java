@@ -13,7 +13,7 @@ public class ZufishServices implements Generator {
 
     private final URL url;
 
-    public ZufishServices(DatasetUpdate update) throws MalformedURLException {
+    public ZufishServices(String datasetName, DatasetUpdate update) throws MalformedURLException {
         this.url = new URL(update.getOriginalURL());
     }
 
