@@ -53,7 +53,7 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
     private final String frequency;
 
     public CoronaSchuldashboard(String id, DatasetUpdate update) {
-        if( update == null || update.getGeneratorArgs() == null) {
+        if (update == null || update.getGeneratorArgs() == null) {
             throw new RuntimeException("Missing generator arguments.");
         }
 
@@ -135,14 +135,14 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
     }
 
     static List<Integer> convertTestungen(JSONObject json, String verificationString) {
-        if( json == null) return null;
+        if (json == null) return null;
 
         if (verificationString != null) {
             if (!json.getString("header").startsWith(verificationString)) {
                 throw new RuntimeException("ungültiger header: " + json.getString("header"));
             }
         }
-        
+
         final JSONArray data = json.getJSONArray("data");
         return Arrays.asList(numberAtPosition(data, 0),
                 numberAtPosition(data, 1),
@@ -206,8 +206,11 @@ Anzahl durchgeführter Testungen in der Schule	https://api.public.polyteia.de/da
         final JSONObject json;
         if (response.getStatusLine().getStatusCode() == 200) {
             json = new JSONObject(new JSONTokener(response.getEntity().getContent()));
+        } else if (response.getStatusLine().getStatusCode() == 404) {
+            // Daten für den Tag wurden noch nicht freigeschaltet
+            json = null;
         } else {
-            log.error("Could not download {}: {}", url, response.getStatusLine());
+            log.warn("Could not download {}: {}", url, response.getStatusLine());
             json = null;
         }
         response.close();
