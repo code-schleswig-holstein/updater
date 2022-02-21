@@ -243,6 +243,11 @@ public class OpenDataUpdatesCkan {
         final JSONObject newDataset = new JSONObject(existingDataset.toString());
         newDataset.remove("resources");
         newDataset.remove("id");
+        newDataset.remove("archiver");
+        newDataset.remove("qa");
+        newDataset.remove("relationships_as_object");
+        newDataset.remove("relationships_as_subject");
+        newDataset.remove("revision_id");
         newDataset.put("is_new", true);
 
         setExtraValue(existingDataset, "modified", timeNow);
