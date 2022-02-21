@@ -255,7 +255,7 @@ public class OpenDataUpdatesCkan {
         setExtraValue(newDataset, "identifier", UUID.randomUUID().toString());
 
         final String realTitle = newDataset.getString("title");
-        final String titleWithDate = realTitle + ' ' + LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        final String titleWithDate = update.collectionId + ' ' + LocalDate.now().format(DateTimeFormatter.ISO_DATE);
         newDataset.put("title", titleWithDate);
 
         // Write new dataset with temporary title to generate a nice dataset id.
@@ -274,7 +274,7 @@ public class OpenDataUpdatesCkan {
             log.info("  issued = {}", getExtrasValue(newDataset, "issued"));
             log.info("  temporal_start = {}", getExtrasValue(newDataset, "temporal_start"));
             log.info("  temporal_end = {}", getExtrasValue(newDataset, "temporal_end"));
-            newDatasetId = "DRY_DRUN";
+            newDatasetId = "DRY_RUN";
         }
 
         final File[] files = localDataDir.listFiles();
@@ -297,8 +297,8 @@ public class OpenDataUpdatesCkan {
             ckanAPI.putDatasetInCollection(newDatasetId, update.collectionId);
             ckanAPI.updatePackage(existingDataset);
         } else {
-            log.info("Dataset würde in Collection {} eingeordnet", update.collectionId);
-            log.info("Existiernedes Dataset würde aktualisiert:");
+            log.info("Dataset {} würde in Collection {} eingeordnet", newDatasetId, update.collectionId);
+            log.info("Existierendes Dataset würde aktualisiert:");
             log.info("  temporal_start = {}", getExtrasValue(existingDataset, "temporal_start"));
             log.info("  temporal_end = {}", getExtrasValue(existingDataset, "temporal_end"));
         }
