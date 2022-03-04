@@ -1,0 +1,172 @@
+{
+  "license_title": "gemeinfrei",
+  "maintainer": null,
+  "relationships_as_object": [],
+  "is_new": false,
+  "private": false,
+  "maintainer_email": null,
+  "num_tags": 2,
+  "id": "f17419f7-d705-487b-9a96-00778c53ea65",
+  "metadata_created": "2022-01-17T14:27:55.122258",
+  "metadata_modified": "2022-03-03T02:25:24.416101",
+  "author": null,
+  "author_email": null,
+  "isopen": true,
+  "state": "active",
+  "version": null,
+  "archiver": {
+    "status": "Archived successfully",
+    "is_broken": false,
+    "reason": "",
+    "status_id": 0
+  },
+  "creator_user_id": "7df583a3-350e-47ef-8738-3bbb68bdb954",
+  "type": "dataset",
+  "resources": [
+    {
+      "cache_last_updated": null,
+      "package_id": "f17419f7-d705-487b-9a96-00778c53ea65",
+      "id": "9de8c47d-ada0-4446-bd28-b9ab1f5396f9",
+      "size": 772,
+      "state": "active",
+      "archiver": {
+        "is_broken_printable": "Downloaded OK",
+        "updated": "2022-03-03T03:25:27.999830",
+        "cache_filepath": "/var/lib/ckan/default/ckan_storage/resources/9de/8c4/7d-ada0-4446-bd28-b9ab1f5396f9",
+        "last_success": "2022-03-03T03:25:27.999830",
+        "size": 772,
+        "is_broken": false,
+        "failure_count": 0,
+        "etag": null,
+        "status": "Archived successfully",
+        "url_redirected_to": "https://opendata-stage.schleswig-holstein.de/dataset/f17419f7-d705-487b-9a96-00778c53ea65/resource/9de8c47d-ada0-4446-bd28-b9ab1f5396f9/download/data.csv",
+        "hash": "d3b175a0ec131f7587ab32e02f4189d618eb0195",
+        "status_id": 0,
+        "reason": "",
+        "last_modified": null,
+        "resource_timestamp": "2022-03-03T02:25:24.409512",
+        "mimetype": "text/csv",
+        "cache_url": "https://opendata-stage.schleswig-holstein.de/dataset/f17419f7-d705-487b-9a96-00778c53ea65/resource/9de8c47d-ada0-4446-bd28-b9ab1f5396f9/download/data.csv",
+        "created": "2022-03-03T03:25:25.544769",
+        "first_failure": null
+      },
+      "hash": "6bea861d37b495bbb9ef7ad401ee6291",
+      "description": "",
+      "format": "CSV",
+      "last_modified": "2022-03-03T02:25:22.267183",
+      "url_type": "upload",
+      "mimetype": "text/csv",
+      "cache_url": null,
+      "name": "data.csv",
+      "created": "2022-03-03T02:25:22.407356",
+      "url": "https://opendata-stage.schleswig-holstein.de/dataset/f17419f7-d705-487b-9a96-00778c53ea65/resource/9de8c47d-ada0-4446-bd28-b9ab1f5396f9/download/data.csv",
+      "qa": {
+        "updated": "2022-03-03T03:25:35.546851",
+        "openness_score": 3,
+        "archival_timestamp": "2022-03-03T03:25:27.999830",
+        "format": "CSV",
+        "created": "2022-03-03T03:25:33.097755",
+        "resource_timestamp": null,
+        "openness_score_reason": "The format of the file was not recognized from its contents. URL extension \"csv\" relates to format \"CSV\" and receives score: 3."
+      },
+      "mimetype_inner": null,
+      "hash_algorithm": "http://dcat-ap.de/def/hashAlgorithms/md/5",
+      "position": 0,
+      "revision_id": "66c3dde9-3d57-4d9f-9abc-617f71ecddbb",
+      "resource_type": null
+    }
+  ],
+  "num_resources": 1,
+  "tags": [
+    {
+      "vocabulary_id": null,
+      "state": "active",
+      "display_name": "COVID-19",
+      "id": "e9e96e7e-c23e-4c2f-9aeb-9ffe0421c420",
+      "name": "COVID-19"
+    },
+    {
+      "vocabulary_id": null,
+      "state": "active",
+      "display_name": "Corona",
+      "id": "79a74ef8-01fd-43ff-af15-3923a25d38b1",
+      "name": "Corona"
+    }
+  ],
+  "groups": [
+    {
+      "display_name": "Bildung, Kultur und Sport",
+      "description": "",
+      "image_display_url": "",
+      "title": "Bildung, Kultur und Sport",
+      "id": "educ",
+      "name": "educ"
+    },
+    {
+      "display_name": "Gesundheit",
+      "description": "",
+      "image_display_url": "",
+      "title": "Gesundheit",
+      "id": "heal",
+      "name": "heal"
+    }
+  ],
+  "license_id": "http://dcat-ap.de/def/licenses/ccpdm/1.0",
+  "relationships_as_subject": [],
+  "organization": {
+    "description": "",
+    "created": "2021-10-20T07:36:08.369510",
+    "title": "Ministerium für Bildung, Wissenschaft und Kultur",
+    "name": "mbwk",
+    "is_organization": true,
+    "state": "active",
+    "image_url": "https://opendata.zitsh.de/images/Dachmarke.png",
+    "revision_id": "a17f0ae9-980c-4e3b-bc82-af62f5f74ad3",
+    "type": "organization",
+    "id": "c177327f-a94b-4192-8820-0f2cc6bec762",
+    "approval_status": "approved"
+  },
+  "name": "testungen-in-der-schule-mit-einem-positiven-testergebnis",
+  "language": "http://publications.europa.eu/resource/authority/language/DEU",
+  "url": null,
+  "notes": "Testungen in der Schule mit einem positiven Testergebnis",
+  "owner_org": "c177327f-a94b-4192-8820-0f2cc6bec762",
+  "qa": {
+    "openness_score_reason": "The format of the file was not recognized from its contents. URL extension \"csv\" relates to format \"CSV\" and receives score: 3.",
+    "updated": "2022-03-03T03:25:35.546851",
+    "openness_score": 3
+  },
+  "extras": [
+    {
+      "key": "groups",
+      "value": "educ,heal"
+    },
+    {
+      "key": "issued",
+      "value": "2022-01-17T00:00:00"
+    },
+    {
+      "key": "licenseAttributionByText",
+      "value": ""
+    },
+    {
+      "key": "spatial_text",
+      "value": "Bundesland Schleswig-Holstein"
+    },
+    {
+      "key": "spatial_uri",
+      "value": "http://dcat-ap.de/def/politicalGeocoding/stateKey/01"
+    },
+    {
+      "key": "temporal_end",
+      "value": "2022-01-07T00:00:00"
+    },
+    {
+      "key": "temporal_start",
+      "value": "2021-04-19T00:00:00"
+    }
+  ],
+  "license_url": "http://creativecommons.org/publicdomain/mark/1.0/",
+  "title": "Testungen in der Schule mit einem positiven Testergebnis",
+  "revision_id": "289fb9c5-29b9-454f-8fec-b666854ca10c"
+}

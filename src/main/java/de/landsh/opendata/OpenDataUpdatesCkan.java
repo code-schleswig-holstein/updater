@@ -211,7 +211,7 @@ public class OpenDataUpdatesCkan {
         }
 
         // Geändertes Dataset schreiben
-        //  ckanAPI.updatePackage(dataset);
+        ckanAPI.updatePackage(dataset);
         log.info("Dataset {} akualisiert.", dataset.getString("id"));
         return true;
     }

@@ -32,7 +32,9 @@ import java.util.UUID;
 
 import static de.landsh.opendata.OpenDataUpdatesCkan.getExtrasValue;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
@@ -104,7 +106,7 @@ public class OpenDataUpdatesCkanTest {
 
         boolean result = openDataUpdatesCkan.work(update);
 
-        Mockito.verify(ckanAPI, Mockito.times(0)).updatePackage(ArgumentMatchers.any());
+        Mockito.verify(ckanAPI, times(0)).updatePackage(ArgumentMatchers.any());
 
         assertTrue(result);
     }
@@ -157,7 +159,7 @@ public class OpenDataUpdatesCkanTest {
         LocalDateTime timeAfter = LocalDateTime.now();
 
         assertTrue(result);
-        Mockito.verify(ckanAPI, Mockito.times(1)).updatePackage(ArgumentMatchers.any());
+        Mockito.verify(ckanAPI, times(1)).updatePackage(ArgumentMatchers.any());
         JSONObject modifiedDataset = argument.getValue();
         LocalDateTime modified = LocalDateTime.parse(getExtrasValue(modifiedDataset, "modified"));
         assertTrue(modified.isAfter(timeBefore));
@@ -200,7 +202,18 @@ public class OpenDataUpdatesCkanTest {
         final boolean result = openDataUpdatesCkan.work(update);
 
         assertFalse(result);
+    }
 
+    /**
+     * Erzeugt das Verzeichnis und die Datei mit den angeblich zuletzt gespeicherten Daten
+     */
+    private void createFakeLocalCopy(String id, String fileSuffix, String content) throws IOException {
+        final File dataDir = new File(localDataDir, id);
+        dataDir.mkdir();
+        File dataFile = new File(dataDir, id + "." + fileSuffix);
+        final FileWriter writer = new FileWriter(dataFile);
+        writer.write(content);
+        writer.close();
     }
 
     @Test
@@ -215,12 +228,7 @@ public class OpenDataUpdatesCkanTest {
         // prepare the existing local copy file
         final String DATA = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {\"name\": \"Omnis-R310-020\"}, \"geometry\": {\"type\": \"Point\", \"coordinates\": [10.49293, 54.386352, 0.0]}}]}";
         final String DATA_NEW = "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": { \"geometry\": {\"type\": \"Point\", \"coordinates\": [10.49293, 54.386352, 0.0]}}]}";
-        final File dataDir = new File(localDataDir, "standorte-sh_wlan");
-        dataDir.mkdir();
-        File dataFile = new File(dataDir, "standorte-sh_wlan.json");
-        final FileWriter writer = new FileWriter(dataFile);
-        writer.write(DATA);
-        writer.close();
+        createFakeLocalCopy("standorte-sh_wlan", "json", DATA);
 
         new MockServerClient("127.0.0.1", mockServer.getPort())
                 .when(
@@ -259,7 +267,7 @@ public class OpenDataUpdatesCkanTest {
 
         boolean result = openDataUpdatesCkan.work(update);
         assertTrue(result);
-        Mockito.verify(ckanAPI, Mockito.times(1)).putDatasetInCollection(newId, "standorte-sh_wlan");
+        Mockito.verify(ckanAPI, times(1)).putDatasetInCollection(newId, "standorte-sh_wlan");
 
         JSONObject newDataset = argument.getValue();
         JSONObject existingDataset = argumentExistingDataset.getValue();
@@ -306,16 +314,72 @@ public class OpenDataUpdatesCkanTest {
         assertNotNull(result);
     }
 
-    public void work_append_private() throws Exception {
+    @Test
+    public void work_missingDirectory() throws Exception {
         final DatasetUpdate update = new DatasetUpdate();
-        update.collectionId = "corona-zahlen-schleswig-flensburg";
+        update.collectionId = "dummy";
         update.generator = DummyGenerator.class.getCanonicalName();
+        update.type = DatasetUpdate.Type.APPEND;
+
+        boolean result = openDataUpdatesCkan.work(update);
+        assertFalse(result);
+    }
+
+    @Test
+    public void work_appendPrivate_missingDatasetId() throws Exception {
+        final DatasetUpdate update = new DatasetUpdate();
+        update.collectionId = "dummy";
+        update.generator = WriteNewFileGenerator.class.getCanonicalName();
         update.format = "csv";
         update.type = DatasetUpdate.Type.APPEND;
         update.isPrivate = true;
 
+        createFakeLocalCopy("dummy", "csv", "old data");
+
         boolean result = openDataUpdatesCkan.work(update);
+        assertFalse(result);
+    }
+
+
+    @Test
+    public void work_appendPrivate() throws Exception {
+        final String id = "testungen-in-der-schule-mit-einem-positiven-testergebnis";
+        final DatasetUpdate update = new DatasetUpdate();
+        update.datasetId = id;
+        update.generator = WriteNewFileGenerator.class.getCanonicalName();
+        update.format = "csv";
+        update.type = DatasetUpdate.Type.APPEND;
+        update.isPrivate = true;
+
+        // prepare files
+        createFakeLocalCopy(id, "csv", "old data");
+
+        // mock CKAN API
+        final JSONTokener jsonTokener = new JSONTokener(getClass().getResourceAsStream("/package_show__testungen-in-der-schule-mit-einem-positiven-testergebnis.json"));
+        final JSONObject dataset = new JSONObject(jsonTokener);
+        Mockito.when(ckanAPI.readDataset(id)).thenReturn(dataset);
+        Mockito.when(ckanAPI.getResources(any())).thenCallRealMethod();
+
+
+        // invoke method
+        boolean result = openDataUpdatesCkan.work(update);
+
+        // check results
         assertTrue(result);
+
+        Mockito.verify(ckanAPI, times(1)).deleteResource("9de8c47d-ada0-4446-bd28-b9ab1f5396f9");
+        final ArgumentCaptor<JSONObject> argument = ArgumentCaptor.forClass(JSONObject.class);
+        Mockito.verify(ckanAPI, times(1)).updatePackage(argument.capture());
+        JSONObject updatedDataset = argument.getValue();
+        assertNotNull(updatedDataset);
+
+        Mockito.verify(ckanAPI, times(1))
+                .uploadFile(eq("testungen-in-der-schule-mit-einem-positiven-testergebnis"),
+                        ArgumentMatchers.any(File.class),
+                        eq("testungen-in-der-schule-mit-einem-positiven-testergebnis.csv"),
+                        eq("CSV"),
+                        eq("text/csv"));
+
     }
 
 
