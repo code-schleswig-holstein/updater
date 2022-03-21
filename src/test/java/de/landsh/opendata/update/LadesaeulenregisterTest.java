@@ -1,6 +1,7 @@
 package de.landsh.opendata.update;
 
 import de.landsh.opendata.DatasetUpdate;
+import de.landsh.opendata.OpenDataUpdatesCkan;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -113,6 +114,15 @@ class LadesaeulenregisterTest {
         assertTrue(lines.get(0).startsWith("Betreiber,Straße,"));
         assertTrue(lines.get(1).startsWith("EnBW mobility+ AG"));
         assertEquals(23, lines.size());
+
+        // Es werden zwei Dateien mit dem Datum geschrieben.
+        final File timeStartFile = new File(dir, OpenDataUpdatesCkan.METADATA_FILE_TIME_START);
+        final File timeEndFile = new File(dir, OpenDataUpdatesCkan.METADATA_FILE_TIME_START);
+        assertTrue(timeStartFile.exists());
+        assertTrue(timeEndFile.exists());
+
+        assertEquals("2022-03-01", Files.readString(timeStartFile.toPath()));
+        assertEquals("2022-03-01", Files.readString(timeEndFile.toPath()));
 
         // clean up
         FileUtils.deleteDirectory(dir);

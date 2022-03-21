@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -142,12 +144,13 @@ public class OpenDataUpdatesCkan {
         }
 
         final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        final DatasetMetadata metadata = readMetadata(localDataDir);
 
         setExtraValue(dataset, "modified", timeNow);
 
         // Gültigkeitszeitraum bestimmen und ändern
         if (StringUtils.isNotEmpty(getExtrasValue(dataset, "temporal_end"))) {
-            setExtraValue(dataset, "temporal_end", timeNow);
+            setExtraValue(dataset, "temporal_end", metadata.getTemporalEnd());
         }
 
         // Geändertes Dataset schreiben
@@ -179,12 +182,13 @@ public class OpenDataUpdatesCkan {
         }
 
         final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        final DatasetMetadata metadata = readMetadata(localDataDir);
 
         setExtraValue(dataset, "modified", timeNow);
 
         // Gültigkeitszeitraum bestimmen und ändern
         if (StringUtils.isNotEmpty(getExtrasValue(dataset, "temporal_end"))) {
-            setExtraValue(dataset, "temporal_end", timeNow);
+            setExtraValue(dataset, "temporal_end", metadata.getTemporalEnd());
         }
 
         // Distributionen austauschen
@@ -239,6 +243,7 @@ public class OpenDataUpdatesCkan {
         final JSONObject existingDataset = ckanAPI.readDataset(newestDatasetId);
         log.info("Änderung erkannt an Dataset " + newestDatasetId);
         final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        final DatasetMetadata metadata = readMetadata(localDataDir);
 
         final JSONObject newDataset = new JSONObject(existingDataset.toString());
         newDataset.remove("resources");
@@ -251,12 +256,12 @@ public class OpenDataUpdatesCkan {
         newDataset.put("is_new", true);
 
         setExtraValue(existingDataset, "modified", timeNow);
-        setExtraValue(existingDataset, "temporal_start", timeNow);
+        setExtraValue(existingDataset, "temporal_start", metadata.getTemporalStart());
         setExtraValue(existingDataset, "issued", timeNow); // damit der Datensatz in der Collection der neuste ist.
 
         setExtraValue(newDataset, "modified", timeNow);
         setExtraValue(newDataset, "issued", timeNow);
-        setExtraValue(newDataset, "temporal_end", timeNow);
+        setExtraValue(newDataset, "temporal_end", metadata.getTemporalEnd());
         setExtraValue(newDataset, "identifier", UUID.randomUUID().toString());
 
         final String realTitle = newDataset.getString("title");
@@ -312,6 +317,9 @@ public class OpenDataUpdatesCkan {
 
     }
 
+    public static final String METADATA_FILE_TIME_END = "_META_TIME_END";
+    public static final String METADATA_FILE_TIME_START = "_META_TIME_START";
+
     /**
      * Datei wird einfach überschrieben und ist nicht öffentlich erreichbar.
      * <p>
@@ -336,16 +344,18 @@ public class OpenDataUpdatesCkan {
         log.info("Änderung erkannt an Dataset " + newestDatasetId);
         final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
 
+       final DatasetMetadata metadata = readMetadata(localDataDir);
+
         final JSONObject newDataset = new JSONObject(existingDataset.toString());
         newDataset.remove("resources");
         newDataset.remove("id");
         newDataset.put("is_new", true);
 
-        setExtraValue(existingDataset, "temporal_end", timeNow);
+        setExtraValue(existingDataset, "temporal_end", metadata.getTemporalEnd());
 
         setExtraValue(newDataset, "modified", timeNow);
         setExtraValue(newDataset, "issued", timeNow);
-        setExtraValue(newDataset, "temporal_start", timeNow);
+        setExtraValue(newDataset, "temporal_start", metadata.getTemporalStart());
         setExtraValue(newDataset, "identifier", UUID.randomUUID().toString());
 
         final String realTitle = newDataset.getString("title");
@@ -389,12 +399,34 @@ public class OpenDataUpdatesCkan {
 
     }
 
+    private DatasetMetadata readMetadata(File localDataDir) throws IOException {
+        final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+
+        final String temporalStart;
+        final String temporalEnd;
+        if( new File(localDataDir, METADATA_FILE_TIME_START).exists() ) {
+            temporalStart = Files.readString(new File(localDataDir, METADATA_FILE_TIME_START).toPath());
+        }   else {
+            temporalStart = timeNow;
+        }
+        if( new File(localDataDir, METADATA_FILE_TIME_END).exists() ) {
+            temporalEnd = Files.readString(new File(localDataDir, METADATA_FILE_TIME_END).toPath());
+        }   else {
+            temporalEnd = timeNow;
+        }
+
+        final DatasetMetadata metadata = new DatasetMetadata();
+        metadata.setTemporalStart(temporalStart);
+        metadata.setTemporalEnd(temporalEnd);
+        return metadata;
+    }
+
     /**
      * Prüfe, ob die zwei Verzeichnisse identischen Inhalt haben.
      */
     public boolean directoriesAreEqual(File dir1, File dir2) throws IOException {
-        File[] files1 = dir1.listFiles();
-        File[] files2 = dir2.listFiles();
+        File[] files1 = dir1.listFiles(file -> !file.getName().startsWith("_META_"));
+        File[] files2 = dir2.listFiles(file -> !file.getName().startsWith("_META_"));
 
         if (files1 == null || files2 == null) return false;
 

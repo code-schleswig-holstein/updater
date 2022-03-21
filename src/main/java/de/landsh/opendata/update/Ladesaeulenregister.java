@@ -1,6 +1,7 @@
 package de.landsh.opendata.update;
 
 import de.landsh.opendata.DatasetUpdate;
+import de.landsh.opendata.OpenDataUpdatesCkan;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Ladesaeulenregister implements Generator {
 
@@ -87,6 +91,9 @@ public class Ladesaeulenregister implements Generator {
                     inData = true;
                 } else if (line.startsWith("Stand:")) {
                     String rawDate = StringUtils.trim(StringUtils.substringAfter(line, "Stand:"));
+                    LocalDate date = LocalDate.parse(rawDate, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                    Files.writeString( new File(directory, OpenDataUpdatesCkan.METADATA_FILE_TIME_START).toPath(),date.format(DateTimeFormatter.ISO_DATE));
+                    Files.writeString( new File(directory, OpenDataUpdatesCkan.METADATA_FILE_TIME_END).toPath(),date.format(DateTimeFormatter.ISO_DATE));
                 }
             }
 
