@@ -194,7 +194,7 @@ public class OpenDataUpdatesCkan {
         // Distributionen austauschen
         final Set<String> oldResourceIds = ckanAPI.getResources(dataset).stream().map(Resource::getId).collect(Collectors.toSet());
         // neue Distributionen hinzufügen
-        final File[] files = localDataDir.listFiles();
+        final File[] files = localDataDir.listFiles(file -> !file.getName().startsWith("_META_"));
         if (files != null) {
             for (File file : files) {
                 final String format = StringUtils.upperCase(StringUtils.substringAfterLast(file.getName(), "."));
@@ -287,7 +287,7 @@ public class OpenDataUpdatesCkan {
             newDatasetId = "DRY_RUN";
         }
 
-        final File[] files = localDataDir.listFiles();
+        final File[] files = localDataDir.listFiles(file -> !file.getName().startsWith("_META_"));
         if (files != null) {
             for (File file : files) {
                 final String format = StringUtils.upperCase(StringUtils.substringAfterLast(file.getName(), "."));
@@ -348,12 +348,20 @@ public class OpenDataUpdatesCkan {
         newDataset.remove("id");
         newDataset.put("is_new", true);
 
-        setExtraValue(existingDataset, "temporal_end", metadata.getTemporalEnd());
+        // Wenn der bisherige Datensatz kein Ende-Datum hatte, bekommt er jetzt eines.
+        if (StringUtils.isEmpty(getExtrasValue(existingDataset, "temporal_end"))) {
+            setExtraValue(existingDataset, "temporal_end", metadata.getTemporalEnd());
+        }
 
         setExtraValue(newDataset, "modified", timeNow);
         setExtraValue(newDataset, "issued", timeNow);
         setExtraValue(newDataset, "temporal_start", metadata.getTemporalStart());
         setExtraValue(newDataset, "identifier", UUID.randomUUID().toString());
+
+        // Wenn der Datensatz bisher ein Ende-Datum hat, muss auch der neue Datensatz ein Ende-Datum haben
+        if (StringUtils.isNotEmpty(getExtrasValue(newDataset, "temporal_end"))) {
+            setExtraValue(newDataset, "temporal_end", metadata.getTemporalEnd());
+        }
 
         final String realTitle = newDataset.getString("title");
         final String titleWithDate = realTitle + ' ' + LocalDate.now().format(DateTimeFormatter.ISO_DATE);
@@ -372,7 +380,7 @@ public class OpenDataUpdatesCkan {
             newDatasetId = "DRY_RUN";
         }
 
-        final File[] files = localDataDir.listFiles();
+        final File[] files = localDataDir.listFiles(file -> !file.getName().startsWith("_META_"));
         if (files != null) {
             for (File file : files) {
                 final String format = StringUtils.upperCase(StringUtils.substringAfterLast(file.getName(), "."));
@@ -534,7 +542,7 @@ public class OpenDataUpdatesCkan {
 
         if (!dryRun) {
             // lokale Kopie aktualisieren
-            final File[] files = tmpdir.listFiles();
+            final File[] files = tmpdir.listFiles(file -> !file.getName().startsWith("_META_"));
 
             if (files == null) {
                 log.warn("Keine Dateien in Verzeichnis {}", tmpdir);
