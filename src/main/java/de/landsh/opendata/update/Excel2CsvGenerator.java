@@ -20,7 +20,7 @@ public class Excel2CsvGenerator implements Generator {
     public Excel2CsvGenerator(String distributionName, DatasetUpdate update) {
         this.downloadGenerator = new JustDownloadGenerator("temp.xlsx", update);
         this.distributionName = distributionName;
-        if (update.getGeneratorArgs().size() > 0) {
+        if ( update.getGeneratorArgs() != null && update.getGeneratorArgs().size() > 0) {
             this.sheetNumber = NumberUtils.toInt(update.getGeneratorArgs().get("sheet"));
         } else {
             this.sheetNumber = 0;
