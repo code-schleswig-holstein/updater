@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +35,8 @@ import java.util.stream.Collectors;
  * Bearbeiten von Datenänderungen direkt über das CKAN API.
  */
 public class OpenDataUpdatesCkan {
+    public static final String METADATA_FILE_TIME_END = "_META_TIME_END";
+    public static final String METADATA_FILE_TIME_START = "_META_TIME_START";
     private static final Logger log = LoggerFactory.getLogger(OpenDataUpdatesCkan.class);
     private CkanAPI ckanAPI;
     private File localDataDir;
@@ -317,9 +317,6 @@ public class OpenDataUpdatesCkan {
 
     }
 
-    public static final String METADATA_FILE_TIME_END = "_META_TIME_END";
-    public static final String METADATA_FILE_TIME_START = "_META_TIME_START";
-
     /**
      * Datei wird einfach überschrieben und ist nicht öffentlich erreichbar.
      * <p>
@@ -344,7 +341,7 @@ public class OpenDataUpdatesCkan {
         log.info("Änderung erkannt an Dataset " + newestDatasetId);
         final String timeNow = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
 
-       final DatasetMetadata metadata = readMetadata(localDataDir);
+        final DatasetMetadata metadata = readMetadata(localDataDir);
 
         final JSONObject newDataset = new JSONObject(existingDataset.toString());
         newDataset.remove("resources");
@@ -404,14 +401,14 @@ public class OpenDataUpdatesCkan {
 
         final String temporalStart;
         final String temporalEnd;
-        if( new File(localDataDir, METADATA_FILE_TIME_START).exists() ) {
+        if (new File(localDataDir, METADATA_FILE_TIME_START).exists()) {
             temporalStart = Files.readString(new File(localDataDir, METADATA_FILE_TIME_START).toPath());
-        }   else {
+        } else {
             temporalStart = timeNow;
         }
-        if( new File(localDataDir, METADATA_FILE_TIME_END).exists() ) {
+        if (new File(localDataDir, METADATA_FILE_TIME_END).exists()) {
             temporalEnd = Files.readString(new File(localDataDir, METADATA_FILE_TIME_END).toPath());
-        }   else {
+        } else {
             temporalEnd = timeNow;
         }
 
@@ -565,10 +562,16 @@ public class OpenDataUpdatesCkan {
             return null;
         }
 
-        // try two types of constructor
+        // try trhee types of constructor
         try {
             final Constructor<?> constructor = clazz.getConstructor(String.class, DatasetUpdate.class);
             return (Generator) constructor.newInstance(id, updateSettings);
+        } catch (NoSuchMethodException ignore) {
+        }
+
+        try {
+            final Constructor<?> constructor = clazz.getConstructor(DatasetUpdate.class);
+            return (Generator) constructor.newInstance(updateSettings);
         } catch (NoSuchMethodException ignore) {
         }
 
