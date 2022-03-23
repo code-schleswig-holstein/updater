@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Iterator;
 
 public class Excel2CsvGenerator implements Generator {
@@ -20,24 +22,15 @@ public class Excel2CsvGenerator implements Generator {
     public Excel2CsvGenerator(String distributionName, DatasetUpdate update) {
         this.downloadGenerator = new JustDownloadGenerator("temp.xlsx", update);
         this.distributionName = distributionName;
-        if ( update.getGeneratorArgs() != null && update.getGeneratorArgs().size() > 0) {
+        if (update.getGeneratorArgs() != null && update.getGeneratorArgs().size() > 0) {
             this.sheetNumber = NumberUtils.toInt(update.getGeneratorArgs().get("sheet"));
         } else {
             this.sheetNumber = 0;
         }
     }
 
-    @Override
-    public boolean generateDistributions(File directory) throws Exception {
-
-        if (!downloadGenerator.generateDistributions(directory)) {
-            return false;
-        }
-
-        final File inputFile = new File(directory, "temp.xlsx");
-        final FileWriter out = new FileWriter(new File(directory, distributionName + ".csv"));
-
-        final Workbook wb = WorkbookFactory.create(inputFile);
+    static void excel2csv(File xlsxFile, Writer csv, int sheetNumber) throws IOException {
+        final Workbook wb = WorkbookFactory.create(xlsxFile);
 
         final DataFormatter dataFormatter = new DataFormatter();
 
@@ -50,20 +43,33 @@ public class Excel2CsvGenerator implements Generator {
                 final Cell cell = it2.next();
                 final String value = dataFormatter.formatCellValue(cell).replaceAll("\n", " ").trim();
                 if (value.contains(DELIMITER)) {
-                    out.write("\"");
-                    out.write(value);
-                    out.write("\"");
+                    csv.write("\"");
+                    csv.write(value);
+                    csv.write("\"");
                 } else {
-                    out.write(value);
+                    csv.write(value);
                 }
                 if (it2.hasNext()) {
-                    out.write(DELIMITER);
+                    csv.write(DELIMITER);
                 }
             }
-            out.write("\n");
+            csv.write("\n");
         }
 
-        out.close();
+        csv.close();
+    }
+
+    @Override
+    public boolean generateDistributions(File directory) throws Exception {
+
+        if (!downloadGenerator.generateDistributions(directory)) {
+            return false;
+        }
+
+        final File inputFile = new File(directory, "temp.xlsx");
+        final FileWriter out = new FileWriter(new File(directory, distributionName + ".csv"));
+
+        excel2csv(inputFile, out, sheetNumber);
 
         if (!inputFile.delete()) {
             log.warn("Could not delete file {}", inputFile);
