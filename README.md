@@ -53,6 +53,17 @@ Bei Datensätze müssen zwei Arten unterschieden werden:
 1. Zeitreihen mit `collectionId`, an die bei Bedarf neue Datensätze angehängt werden
 2. einzelne Datensätze mit `datasetId`, die bei Bedarf aktualisiert werden
 
+## Arten des Überschreibens
+
+Es gibt vier Möglichkeiten, wie ein Datensatz aktualisiert wird. Dies wird durch die Angaben `type` und `private` festgelegt.
+
+| type      | private | Beispiel                                                     |
+| --------- | ------- | ------------------------------------------------------------ |
+| OVERWRITE |         | https://opendata.schleswig-holstein.de/dataset/badegewasser-stammdaten-aktuell |
+| OVERWRITE | true    | https://opendata.schleswig-holstein.de/collection/ln-2020-statusliste-schulen/aktuell |
+| APPEND    |         | https://opendata.schleswig-holstein.de/dataset/badegewasser-messungen |
+| APPEND    | true    | https://opendata.schleswig-holstein.de/dataset/corona-zahlen-kreis-stormarn |
+
 ## Generatoren
 
 Die Generatoren sind dafür zuständig, Dateien der Datensätze zu erzeugen. Das können sie z.B. ganz einfach durch Herunterladen einer Datei machen. Möglich sind aber auch komplexere Vorgänge, wie das Befragen einer Schnittstelle und das Umformen von Daten.
