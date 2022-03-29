@@ -24,8 +24,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.UUID;
@@ -59,13 +62,15 @@ public class OpenDataUpdatesCkanTest {
     public static void stopServer() {
         mockServer.stop(true);
         while (!mockServer.hasStopped(3, 100L, TimeUnit.MILLISECONDS)) {
-        }    }
+        }
+    }
 
     @BeforeEach
     public void setUp() throws IOException {
         openDataUpdatesCkan.setCkanAPI(ckanAPI);
         localDataDir = Files.createTempDirectory("localdata").toFile();
         openDataUpdatesCkan.setLocalDataDir(localDataDir);
+        DummyGenerator.invokationCounter = 0;
     }
 
     @Test
@@ -208,14 +213,17 @@ public class OpenDataUpdatesCkanTest {
 
     /**
      * Erzeugt das Verzeichnis und die Datei mit den angeblich zuletzt gespeicherten Daten
+     *
+     * @return die erzeugte Datei mit den  angeblich zuletzt gespeicherten Daten
      */
-    private void createFakeLocalCopy(String id, String fileSuffix, String content) throws IOException {
+    private File createFakeLocalCopy(String id, String fileSuffix, String content) throws IOException {
         final File dataDir = new File(localDataDir, id);
         dataDir.mkdir();
-        File dataFile = new File(dataDir, id + "." + fileSuffix);
+        final File dataFile = new File(dataDir, id + "." + fileSuffix);
         final FileWriter writer = new FileWriter(dataFile);
         writer.write(content);
         writer.close();
+        return dataFile;
     }
 
     @Test
@@ -382,6 +390,50 @@ public class OpenDataUpdatesCkanTest {
                         eq("CSV"),
                         eq("text/csv"));
 
+    }
+
+    /**
+     * Der Datensatz soll nur maximal jeden Monat aktualisiert werden.
+     */
+    @Test
+    void work_noUpdateNecessary() throws Exception {
+        final String datasetId = "5Qknzt7iPCLUc";
+
+        createFakeLocalCopy(datasetId, "csv", "old data");
+
+        final DatasetUpdate update = new DatasetUpdate();
+        update.setType(DatasetUpdate.Type.APPEND);
+        update.setFrequency(DatasetUpdate.Frequency.MONTHLY);
+        update.setDatasetId(datasetId);
+        update.setGenerator(DummyGenerator.class.getName());
+
+        openDataUpdatesCkan.work(update);
+
+        assertEquals(0, DummyGenerator.invokationCounter);
+    }
+
+    /**
+     * Der Datensatz soll nur maximal jede Woche aktualisiert werden, die Zeit ist bereits erreicht.
+     */
+    @Test
+    void work_updateNecessary() throws Exception {
+        final String datasetId = "ed1caML57fUtg";
+
+        // erzeuge eine alte lokale "Kopie" der Daten
+        final File oldFile = createFakeLocalCopy(datasetId, "csv", "old data");
+        final LocalDateTime newLocalDateTime = LocalDateTime.now();
+        final Instant instant = newLocalDateTime.minusDays(8).toInstant(ZoneOffset.UTC);
+        Files.setLastModifiedTime(oldFile.toPath(), FileTime.from(instant));
+
+        final DatasetUpdate update = new DatasetUpdate();
+        update.setType(DatasetUpdate.Type.APPEND);
+        update.setFrequency(DatasetUpdate.Frequency.WEEKLY);
+        update.setDatasetId(datasetId);
+        update.setGenerator(DummyGenerator.class.getName());
+
+        openDataUpdatesCkan.work(update);
+
+        assertEquals(1, DummyGenerator.invokationCounter);
     }
 
 

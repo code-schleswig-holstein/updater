@@ -25,8 +25,13 @@ public class DatasetUpdate {
     Integer dayOfMonth;
     Integer dayOfWeek;
     String format = "csv";
+    Frequency frequency;
 
     public enum Type {
         APPEND, OVERWRITE, METADATA
+    }
+
+    public enum Frequency {
+        WEEKLY, MONTHLY, QUARTERLY
     }
 }

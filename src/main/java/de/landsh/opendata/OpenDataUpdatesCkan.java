@@ -21,14 +21,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -456,6 +454,23 @@ public class OpenDataUpdatesCkan {
         return false;
     }
 
+    /**
+     * Liefert das Alter (in Millisekunden der neusten Datei in einem Verzeichnis
+     */
+    long getAgeOfNewestFile(File dir) throws IOException {
+        long newest = 0;
+        for (final File file : Objects.requireNonNull(dir.listFiles())) {
+            if (file.isFile()) {
+                final BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                final long time = attr.lastModifiedTime().toMillis();
+                if (time > newest) {
+                    newest = time;
+                }
+            }
+        }
+        return System.currentTimeMillis() - newest;
+    }
+
     boolean work(DatasetUpdate update) throws Exception {
 
         if (!update.isActive())
@@ -470,6 +485,21 @@ public class OpenDataUpdatesCkan {
         }
 
         final String id = update.collectionId != null ? update.collectionId : update.datasetId;
+        final File localCopyDir = new File(localDataDir, id);
+
+        // Prüfen, ob der letzte Lauf lange genug her ist.
+        if (update.frequency != null) {
+            final long age =getAgeOfNewestFile( localCopyDir);
+            if( update.frequency == DatasetUpdate.Frequency.WEEKLY && age < 604800000L) {
+                return false;
+            }
+            if( update.frequency == DatasetUpdate.Frequency.MONTHLY && age < 2592000000L) {
+                return false;
+            }
+            if( update.frequency == DatasetUpdate.Frequency.QUARTERLY && age < 7776000000L) {
+                return false;
+            }
+        }
 
         final Generator generator;
         if (JustDownloadGenerator.class.getCanonicalName().equals(update.generator)
@@ -502,7 +532,6 @@ public class OpenDataUpdatesCkan {
             return false;
         }
 
-        File localCopyDir = new File(localDataDir, id);
 
         boolean success;
         if (localCopyDir.isDirectory()) {
