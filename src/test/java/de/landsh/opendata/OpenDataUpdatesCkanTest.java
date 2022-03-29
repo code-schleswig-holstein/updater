@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static de.landsh.opendata.OpenDataUpdatesCkan.getExtrasValue;
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,8 +57,9 @@ public class OpenDataUpdatesCkanTest {
 
     @AfterAll
     public static void stopServer() {
-        mockServer.stop();
-    }
+        mockServer.stop(true);
+        while (!mockServer.hasStopped(3, 100L, TimeUnit.MILLISECONDS)) {
+        }    }
 
     @BeforeEach
     public void setUp() throws IOException {

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,8 +77,9 @@ class LadesaeulenregisterTest {
 
     @AfterAll
     public static void stopServer() {
-        mockServer.stop();
-    }
+        mockServer.stop(true);
+        while (!mockServer.hasStopped(3, 100L, TimeUnit.MILLISECONDS)) {
+        }    }
 
     @Test
     public void determineExcelFileURL() throws IOException {

@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -63,7 +64,9 @@ public class WappenrolleGeneratorTest {
 
     @AfterAll
     public static void stopServer() {
-        mockServer.stop();
+        mockServer.stop(true);
+        while (!mockServer.hasStopped(3, 100L, TimeUnit.MILLISECONDS)) {
+        }
     }
 
     @Test
