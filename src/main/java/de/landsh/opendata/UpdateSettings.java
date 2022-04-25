@@ -12,4 +12,7 @@ public class UpdateSettings {
     List<DatasetUpdate> datasets;
     String dataDirectory;
     boolean dryRun;
+    String httpBasicUserName;
+    String httpBasicPassword;
 }
+

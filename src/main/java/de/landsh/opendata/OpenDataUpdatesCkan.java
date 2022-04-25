@@ -44,6 +44,10 @@ public class OpenDataUpdatesCkan {
         ckanAPI = new CkanAPI(baseURL, apiKey);
     }
 
+    public OpenDataUpdatesCkan(String baseURL, ApiKey apiKey, String userName, String password) {
+        ckanAPI = new CkanAPI(baseURL, apiKey, userName, password);
+    }
+
     public static void main(String[] args) throws Exception {
 
         if (args.length < 1 || !new File(args[0]).exists()) {
@@ -55,7 +59,17 @@ public class OpenDataUpdatesCkan {
         UpdateSettings settings = mapper.readValue(new File(args[0]), UpdateSettings.class);
 
         final ApiKey apiKey = new ApiKey(settings.isDryRun() ? "DRY_RUN" : settings.getApiKey());
-        final OpenDataUpdatesCkan self = new OpenDataUpdatesCkan(settings.getCkanURL(), apiKey);
+
+        final OpenDataUpdatesCkan self;
+        if (StringUtils.isNotEmpty(settings.getHttpBasicUserName())) {
+            // CKAN is proctected with HTTP Basic authentication, e.g. a stage system
+            self =      new OpenDataUpdatesCkan(settings.getCkanURL(), apiKey,
+                    settings.getHttpBasicUserName(), settings.getHttpBasicPassword());
+        } else {
+          self   = new OpenDataUpdatesCkan(settings.getCkanURL(), apiKey);
+        }
+
+
         self.localDataDir = new File(settings.localDirectory);
         self.dryRun = settings.isDryRun();
 
@@ -489,14 +503,14 @@ public class OpenDataUpdatesCkan {
 
         // Prüfen, ob der letzte Lauf lange genug her ist.
         if (update.frequency != null) {
-            final long age =getAgeOfNewestFile( localCopyDir);
-            if( update.frequency == DatasetUpdate.Frequency.WEEKLY && age < 604800000L) {
+            final long age = getAgeOfNewestFile(localCopyDir);
+            if (update.frequency == DatasetUpdate.Frequency.WEEKLY && age < 604800000L) {
                 return false;
             }
-            if( update.frequency == DatasetUpdate.Frequency.MONTHLY && age < 2592000000L) {
+            if (update.frequency == DatasetUpdate.Frequency.MONTHLY && age < 2592000000L) {
                 return false;
             }
-            if( update.frequency == DatasetUpdate.Frequency.QUARTERLY && age < 7776000000L) {
+            if (update.frequency == DatasetUpdate.Frequency.QUARTERLY && age < 7776000000L) {
                 return false;
             }
         }
